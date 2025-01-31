@@ -1,0 +1,285 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: #ffffff;
+  color: #333;
+}
+
+/* Header Styles */
+.container {
+  max-width: 2100px;
+  margin: 0 auto;
+}
+
+header {
+  width: 100%;
+  margin-bottom: 10px;
+  background: linear-gradient(to right, #e8f5e9, #ffffff);
+}
+
+.header-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+}
+
+/* Button Container */
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+  justify-content: center;
+  background: transparent;
+  margin: 10px auto;
+  max-width: 100%;
+}
+
+/* Navigation Buttons */
+.nav-button {
+  padding: 8px 20px;
+  border: 1px solid #5a77f7;
+  border-radius: 25px;
+  background: white;
+  color: #2196f3;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  margin-bottom: 5px;
+}
+
+/* Active Button Style */
+.nav-button.active {
+  background: #2196f3;
+  color: white;
+  border: 1px solid #2196f3;
+}
+
+/* Gallery Grid */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 15px;
+  padding: 20px;
+  width: 100%;
+}
+
+/* Update gallery item styles */
+.gallery-item {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.gallery img:hover {
+  transform: scale(1.02);
+}
+
+/* Complete replacement for Lightbox styles */
+.lightbox {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.95);
+  z-index: 99999;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+}
+
+.lightbox.active {
+  display: flex !important;
+}
+
+.lightbox-image {
+  max-height: 90vh;
+  max-width: 90vw;
+  object-fit: contain;
+  cursor: default;
+}
+
+/* Fix Lightbox Button Styles */
+.prev-btn, 
+.next-btn, 
+.close-btn,
+.download-btn {
+  position: fixed;
+  z-index: 100000;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+/* Position each button */
+.prev-btn { 
+  left: 20px; 
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.next-btn { 
+  right: 20px; 
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.close-btn { 
+  top: 20px; 
+  right: 20px;
+}
+
+.download-btn { 
+  bottom: 20px; 
+  right: 20px;
+}
+
+/* Button icons */
+.prev-btn::before,
+.next-btn::before,
+.close-btn::before,
+.download-btn::before {
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-size: 20px;
+}
+
+.prev-btn::before { content: "\f104"; }
+.next-btn::before { content: "\f105"; }
+.close-btn::before { content: "\f00d"; }
+.download-btn::before { content: "\f019"; }
+
+/* Button hover effects */
+.prev-btn:hover, 
+.next-btn:hover, 
+.close-btn:hover,
+.download-btn:hover {
+  background: rgba(33, 150, 243, 0.9);
+  transform: scale(1.1);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .prev-btn,
+  .next-btn,
+  .close-btn,
+  .download-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .prev-btn::before,
+  .next-btn::before { 
+    font-size: 22px;
+  }
+
+  .close-btn::before,
+  .download-btn::before { 
+    font-size: 18px;
+  }
+}
+
+/* Mobile Responsive */
+@media screen and (max-width: 1200px) {
+  .gallery {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 15px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .gallery {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 10px;
+    display: grid !important; /* Force grid display */
+    width: 100% !important;
+    min-height: 100vh; /* Add this */
+  }
+
+  .gallery-item {
+    min-height: auto;
+    aspect-ratio: 1;
+    width: 100% !important;
+    display: block !important;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  .nav-button {
+    padding: 6px 16px;
+    font-size: 13px;
+  }
+
+  .prev-btn,
+  .next-btn,
+  .close-btn,
+  .download-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+
+  .prev-btn { left: 10px; }
+  .next-btn { right: 10px; }
+  .close-btn { top: 10px; right: 10px; }
+  .download-btn { bottom: 10px; right: 10px; }
+}
+
+/* Add this animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media screen and (max-width: 480px) {
+  .gallery {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    padding: 5px;
+  }
+
+  .nav-button {
+    padding: 5px 14px;
+    font-size: 12px;
+  }
+
+  .prev-btn,
+  .next-btn,
+  .close-btn,
+  .download-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+  }
+}

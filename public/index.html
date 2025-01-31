@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Image Gallery</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="images/header-image.jpg" alt="Gallery Header" class="header-image">
+        </header>
+        
+        
+        <div class="button-container">         
+          <button class="nav-button active" data-folder="all">All</button>
+          <button class="nav-button" data-folder="family">Family</button>
+          <button class="nav-button" data-folder="marriage">Marriage</button>          
+          <button class="nav-button" data-folder="couple">Couple</button>         
+          <button class="nav-button" data-folder="sanjeeb">Sanjeeb</button>         
+          <button class="nav-button" data-folder="rina">Rina</button>         
+          <button class="nav-button" data-folder="ladly">Ladly</button>         
+          <button class="nav-button" data-folder="rishu">Rishu</button>     
+        </div>
+
+        <div class="gallery" id="gallery">
+            <!-- Images will be loaded here dynamically -->
+        </div>
+
+        <div class="lightbox" id="lightbox">
+            <img src="" alt="Lightbox Image" class="lightbox-image">
+            <button class="prev-btn" aria-label="Previous"></button>
+            <button class="next-btn" aria-label="Next"></button>
+            <button class="close-btn" aria-label="Close"></button>
+            <button class="download-btn" aria-label="Download"></button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+
