@@ -36,48 +36,55 @@ let isLoading = false;
 const CHUNK_SIZE = 50;  // Number of images to load at once
 const TOTAL_CHUNKS = 20; // Maximum number of chunks to load
 
-// Function to generate image array for a folder
-function generateImagesForFolder(folder) {
-    const count = config.imageCounts[folder];
-    return Array.from({ length: count }, (_, i) => ({
-        src: `${config.basePath[folder]}/image-${i + 1}.jpg`,
-        name: `image-${i + 1}.jpg`
-    }));
-}
+// Update API key
+const API_KEY = 'AIzaSyBwWGV-owNZ66wYR9YcendvDxj4lqaN2LM';
 
-// Generate all image data
-const imageData = {};
-config.folders.forEach(folder => {
-    imageData[folder] = generateImagesForFolder(folder);
-});
-
-// Google Drive direct link generator
-function getGoogleDriveDirectLink(fileId) {
-    return `https://drive.google.com/uc?export=view&id=${fileId}`;
-}
-
-// Modified function to fetch images from Google Drive
-async function fetchImagesFromFolder(folder) {
-    const folderId = config.folderIds[folder];
-    if (!folderId) return [];
-
+// Update getImageIdsFromFolder function to handle no-cookie scenarios
+async function getImageIdsFromFolder(folderId) {
     try {
-        // Google Drive API endpoint for folder contents
-        const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&orderBy=name&fields=files(id,name)`;
-        const response = await fetch(url);
+        const response = await fetch(`https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&fields=files(id,name)&key=${API_KEY}`, {
+            credentials: 'omit', // Don't send cookies
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
         const data = await response.json();
-
-        return data.files.map(file => ({
-            src: getGoogleDriveDirectLink(file.id),
-            name: file.name
-        }));
+        return data.files;
     } catch (error) {
-        console.error(`Error fetching images from ${folder}:`, error);
+        console.error('Error fetching images:', error);
         return [];
     }
 }
 
-// Modify displayImages function to add console.log for debugging
+// Update generateDriveImageUrl function
+function generateDriveImageUrl(fileId) {
+    // Use the no-cookie version of the URL
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+}
+
+// Update generateImagesForFolder function
+async function generateImagesForFolder(folder) {
+    const folderId = config.folderIds[folder];
+    const images = await getImageIdsFromFolder(folderId);
+    
+    return images.map((file, index) => ({
+        src: generateDriveImageUrl(file.id),
+        name: file.name || `${folder}-${index + 1}.jpg`,
+        id: file.id
+    }));
+}
+
+// Remove or comment out these unused functions
+// function getGoogleDriveDirectLink(fileId) { ... }
+// function verifyFolderAccess(folderId) { ... }
+
+// Replace the existing fetchImagesFromFolder function with this
+async function fetchImagesFromFolder(folder) {
+    return await generateImagesForFolder(folder);
+}
+
+// Add error handling for image loading
 function displayImages(images, append = false) {
     const gallery = document.getElementById("gallery");
     if (!append) {
@@ -103,6 +110,12 @@ function displayImages(images, append = false) {
             img.loading = "lazy";
             img.src = image.src;
             img.alt = image.name;
+
+            // Add error handling for failed image loads
+            img.onerror = function() {
+                // Fallback to thumbnail URL if main URL fails
+                this.src = `https://drive.google.com/thumbnail?id=${image.id}&sz=w1000`;
+            };
 
             // Fix index calculation
             const actualIndex = index; // Remove startIndex addition
@@ -220,59 +233,69 @@ function downloadCurrentImage() {
 
 // Modify event listener for buttons
 document.addEventListener("DOMContentLoaded", async () => {
-    // Initial load - show all images
-    const allImages = Object.values(imageData).flat();
-    displayImages(allImages);
+    try {
+        // Generate initial image data
+        const imageData = {};
+        for (const folder of config.folders) {
+            imageData[folder] = await generateImagesForFolder(folder);
+        }
 
-    // Button click handlers
-    const buttons = document.querySelectorAll(".nav-button");
-    buttons.forEach((button) => {
-        button.addEventListener("click", async () => {
-            buttons.forEach((btn) => btn.classList.remove("active"));
-            button.classList.add("active");
-            currentPage = 0; // Reset page count on new filter
+        // Use the generated images
+        const allImages = Object.values(imageData).flat();
+        displayImages(allImages);
+        
+        // Button click handlers
+        const buttons = document.querySelectorAll(".nav-button");
+        buttons.forEach((button) => {
+            button.addEventListener("click", async () => {
+                buttons.forEach((btn) => btn.classList.remove("active"));
+                button.classList.add("active");
+                currentPage = 0; // Reset page count on new filter
 
-            const folder = button.dataset.folder;
-            if (folder === "all") {
-                displayImages(allImages);
-            } else {
-                const folderImages = await fetchImagesFromFolder(folder);
-                displayImages(folderImages);
+                const folder = button.dataset.folder;
+                if (folder === "all") {
+                    displayImages(allImages);
+                } else {
+                    const folderImages = await fetchImagesFromFolder(folder);
+                    displayImages(folderImages);
+                }
+            });
+        });
+
+        // Lightbox event listeners
+        const lightbox = document.getElementById('lightbox');
+        const closeBtn = document.querySelector(".close-btn")
+        const prevBtn = document.querySelector(".prev-btn")
+        const nextBtn = document.querySelector(".next-btn")
+        const downloadBtn = document.querySelector(".download-btn")
+
+        closeBtn.addEventListener("click", closeLightbox)
+        prevBtn.addEventListener("click", () => navigateImage(-1))
+        nextBtn.addEventListener("click", () => navigateImage(1))
+        downloadBtn.addEventListener("click", downloadCurrentImage) // Only one download handler
+
+        // Close lightbox when clicking outside the image
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                closeLightbox();
             }
         });
-    });
 
-    // Lightbox event listeners
-    const lightbox = document.getElementById('lightbox');
-    const closeBtn = document.querySelector(".close-btn")
-    const prevBtn = document.querySelector(".prev-btn")
-    const nextBtn = document.querySelector(".next-btn")
-    const downloadBtn = document.querySelector(".download-btn")
+        // Prevent image click from closing lightbox
+        lightbox.querySelector('.lightbox-image').addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
 
-    closeBtn.addEventListener("click", closeLightbox)
-    prevBtn.addEventListener("click", () => navigateImage(-1))
-    nextBtn.addEventListener("click", () => navigateImage(1))
-    downloadBtn.addEventListener("click", downloadCurrentImage) // Only one download handler
-
-    // Close lightbox when clicking outside the image
-    lightbox.addEventListener('click', (e) => {
-        if (e.target === lightbox) {
-            closeLightbox();
-        }
-    });
-
-    // Prevent image click from closing lightbox
-    lightbox.querySelector('.lightbox-image').addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
-
-    // Keyboard navigation
-    document.addEventListener("keydown", (e) => {
-        if (lightbox.style.display === "flex") {
-            if (e.key === "Escape") closeLightbox()
-            if (e.key === "ArrowLeft") navigateImage(-1)
-            if (e.key === "ArrowRight") navigateImage(1)
-        }
-    })
-})
+        // Keyboard navigation
+        document.addEventListener("keydown", (e) => {
+            if (lightbox.style.display === "flex") {
+                if (e.key === "Escape") closeLightbox()
+                if (e.key === "ArrowLeft") navigateImage(-1)
+                if (e.key === "ArrowRight") navigateImage(1)
+            }
+        })
+    } catch (error) {
+        console.error('Error loading gallery:', error);
+    }
+});
 
